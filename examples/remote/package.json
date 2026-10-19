@@ -1,0 +1,21 @@
+{
+  "name": "fetchalo-example-remote",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Module Federation remote (Vite) whose files are only served with an Authorization header.",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "preview": "vite build && vite preview"
+  },
+  "dependencies": {
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "styled-components": "6.1.19"
+  },
+  "devDependencies": {
+    "@module-federation/vite": "1.23.5",
+    "@vitejs/plugin-react": "6.0.2",
+    "vite": "8.3.4"
+  }
+}

@@ -1,11 +1,107 @@
 {
   "name": "fetchalo",
-  "version": "0.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
+  "version": "0.0.1",
+  "description": "Vite, webpack and Rspack plugin that loads remote JS, CSS and media through your own fetch, so every request can carry headers (e.g. Authorization) without a service worker.",
+  "type": "module",
   "license": "MIT",
-  "description": ""
+  "author": {
+    "name": "Giorgio Boa",
+    "email": "giorgiob.boa@gmail.com",
+    "url": "https://github.com/gioboa"
+  },
+  "homepage": "https://github.com/gioboa/fetchalo#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gioboa/fetchalo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gioboa/fetchalo/issues"
+  },
+  "keywords": [
+    "vite",
+    "vite-plugin",
+    "fetch",
+    "headers",
+    "authorization",
+    "module-federation",
+    "es-module-shims",
+    "micro-frontends",
+    "webpack",
+    "rspack"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./federation": {
+      "types": "./dist/federation.d.ts",
+      "import": "./dist/federation.js",
+      "default": "./dist/federation.js"
+    },
+    "./webpack": {
+      "types": "./dist/webpack.d.ts",
+      "import": "./dist/webpack.js",
+      "default": "./dist/webpack.js"
+    },
+    "./rspack": {
+      "types": "./dist/webpack.d.ts",
+      "import": "./dist/webpack.js",
+      "default": "./dist/webpack.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "fmt": "oxfmt src e2e examples tsdown.config.ts playwright.config.ts",
+    "fmt.check": "oxfmt --check src e2e examples tsdown.config.ts playwright.config.ts",
+    "dev": "tsdown --watch",
+    "build": "tsdown",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "tsdown && vitest run src",
+    "prepublishOnly": "pnpm run fmt.check && pnpm run typecheck && pnpm run test",
+    "packcheck": "npm pack --dry-run",
+    "e2e": "pnpm build && playwright test"
+  },
+  "dependencies": {
+    "es-module-shims": "2.8.4"
+  },
+  "peerDependencies": {
+    "@rspack/core": ">=1.0.0",
+    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0",
+    "webpack": "^5.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.0",
+    "@rspack/core": "2.1.7",
+    "@types/node": "26.6.5",
+    "oxfmt": "0.73.0",
+    "tsdown": "0.23.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.4",
+    "vitest": "5.0.5",
+    "webpack": "5.109.2"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "packageManager": "pnpm@10.28.2",
+  "peerDependenciesMeta": {
+    "@rspack/core": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    },
+    "webpack": {
+      "optional": true
+    }
+  }
 }

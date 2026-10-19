@@ -1,0 +1,5 @@
+/* Loaded by Assets.jsx (public/styles) with <link>: exercises @import through fetchalo. */
+@import url('./imported.css');
+.remote-import-root {
+  color: rgb(1, 2, 3);
+}
