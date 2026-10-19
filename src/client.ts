@@ -1,14 +1,12 @@
 /**
  * Classic script that the Vite plugin injects at the top of <head>, before
- * es-module-shims. The plugin fills in the two placeholders.
+ * es-module-shims. The plugin fills in the placeholder.
  */
-import { installFetchalo } from './client-core';
+import { installFetchalo, loadConfig } from './client-core';
 
-declare const __FETCHALO_ORIGINS__: string[];
-declare const __FETCHALO_HEADERS__: string;
+declare const __FETCHALO_CONFIG__: string;
 
 installFetchalo({
-  origins: __FETCHALO_ORIGINS__,
-  // The app's headers module, loaded on its own so it never waits on the app.
-  headers: import(__FETCHALO_HEADERS__).then((module) => module.default),
+  // The app's config file, loaded on its own so it never waits on the app.
+  config: import(__FETCHALO_CONFIG__).then((module) => loadConfig(module.default)),
 });

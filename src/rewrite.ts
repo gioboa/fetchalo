@@ -101,7 +101,6 @@ export function publicPath(base: string, htmlPath: string, file: string): string
 
 /** `URL.origin` has no trailing slash or path: `https://remote.example/` would never match. */
 export function normalizeOrigins(origins: string[]): string[] {
-  if (!origins?.length) throw new Error('[fetchalo] `origins` must list at least one origin');
   const normalized = origins.map((origin) => {
     let url: URL | undefined;
     try {

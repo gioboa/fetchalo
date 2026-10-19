@@ -16,6 +16,8 @@ function remoteRequests() {
 
 const hostTitles: Record<string, string> = {
   vite: 'Vite host',
+  'vite-runtime-plugin': 'Vite runtime plugin host',
+  runtime: 'Runtime host',
   webpack: 'webpack host',
   rspack: 'Rspack host',
 };
@@ -39,7 +41,7 @@ test('loads every remote file with the token, without a service worker', async (
     expect(await page.evaluate(() => 'serviceWorker' in navigator)).toBe(false);
   }
 
-  const hostTitle = hostTitles[testInfo.project.name.split('-')[0]];
+  const hostTitle = hostTitles[testInfo.project.name.replace(/-(chromium|firefox|webkit)$/, '')];
   for (const name of [hostTitle, 'Remote App', 'Remote assets']) {
     await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
   }

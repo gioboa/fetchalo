@@ -7,8 +7,8 @@ export default defineConfig({
   server: { port: 5175, strictPort: true },
   preview: { port: 5175, strictPort: true },
   plugins: [
-    // Every request to the remote's origin carries the headers from src/remoteHeaders.js.
-    fetchalo({ origins: ['http://localhost:5176'], headers: './src/remoteHeaders.js' }),
+    // Every request to the origins in src/fetchalo.config.js carries its headers.
+    fetchalo('./src/fetchalo.config.js'),
     react(),
     federation({
       name: 'host',

@@ -1,0 +1,22 @@
+{
+  "name": "fetchalo-example-runtime-host",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Host that registers the authenticated remote and fetchalo with the Module Federation runtime API, without build plugins.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite build && vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "@module-federation/runtime": "2.9.2",
+    "fetchalo": "workspace:*",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "6.0.2",
+    "vite": "8.3.4"
+  }
+}

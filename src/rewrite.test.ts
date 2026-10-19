@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { findCssUrls, mapSrcset, replaceCssUrls, requestHeaders, srcsetUrls } from './rewrite';
+import {
+  findCssUrls,
+  mapSrcset,
+  normalizeOrigins,
+  replaceCssUrls,
+  requestHeaders,
+  srcsetUrls,
+} from './rewrite';
 
 const isTarget = (url: string) => url.startsWith('https://remote.example/');
 const base = 'https://remote.example/assets/style.css';
@@ -86,6 +93,22 @@ describe('@import', () => {
     expect(out).toBe(
       `@import "blob:a";\n@import "blob:b" layer(x) screen;\n@import url(https://other.example/c.css);`
     );
+  });
+});
+
+describe('normalizeOrigins', () => {
+  it('normalizes to URL.origin and drops duplicates', () => {
+    expect(
+      normalizeOrigins([
+        'https://remote.example/',
+        'http://host.example:5176/testbase/',
+        'https://remote.example',
+      ])
+    ).toEqual(['https://remote.example', 'http://host.example:5176']);
+  });
+
+  it('rejects invalid origins', () => {
+    expect(() => normalizeOrigins(['remote.example'])).toThrow('invalid origin "remote.example"');
   });
 });
 

@@ -23,8 +23,8 @@ module.exports = {
     rules: [{ test: /\.jsx?$/, exclude: /node_modules/, use: { loader: 'babel-loader' } }],
   },
   plugins: [
-    // Every request to the remote's origin carries the headers from src/remoteHeaders.js.
-    new FetchaloPlugin({ origins: ['http://localhost:5176'], headers: './src/remoteHeaders.js' }),
+    // Every request to the origins in src/fetchalo.config.js carries its headers.
+    new FetchaloPlugin('./src/fetchalo.config.js'),
     new ModuleFederationPlugin(federationConfig('webpackHost')),
     new HtmlWebPackPlugin({ template: './src/index.html' }),
     new webpack.DefinePlugin({ __HOST_TITLE__: JSON.stringify('webpack host') }),

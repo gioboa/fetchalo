@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 
 export const TOKEN = 'Bearer fetchalo-demo-token';
 
-// Serves the remote's files only with the token (the hosts' remoteHeaders.js adds
+// Serves the remote's files only with the token (the hosts' fetchalo.config.js adds
 // it). Every request is logged to REMOTE_REQUEST_LOG when set, for the e2e suite.
 function requireAuth() {
   const check = (req, res, next) => {
