@@ -1,6 +1,6 @@
 {
   "name": "fetchalo",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Vite, webpack and Rspack plugin that loads remote JS, CSS and media through your own fetch, so every request can carry headers (e.g. Authorization) without a service worker.",
   "type": "module",
   "license": "MIT",
