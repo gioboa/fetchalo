@@ -2,24 +2,64 @@ import {
   findCssImports,
   findCssUrls,
   mapSrcset,
+  normalizeOrigin,
   replaceCssImports,
   replaceCssUrls,
   requestHeaders,
   srcsetUrls,
 } from './rewrite';
 
-export type HeadersFn = (url: string) => HeadersInit | undefined | Promise<HeadersInit | undefined>;
+/**
+ * fetchalo's configuration: the default export of the app's `fetchalo.config` file
+ * (for the build plugins), and the argument of `fetchalo/federation`.
+ *
+ * ```ts
+ * import type { FetchaloConfig } from 'fetchalo';
+ *
+ * export default {
+ *   origins: ['https://remote.example'],
+ *   headers: (url) => ({ Authorization: `Bearer ${getToken()}` }),
+ * } satisfies FetchaloConfig;
+ * ```
+ */
+export type FetchaloConfig = {
+  /** Origins whose files are fetched with the headers, e.g. `https://remote.example`. */
+  origins: string[];
+  /**
+   * Headers for a request to the `origins`. Called for every request, so it can
+   * return a refreshed token.
+   */
+  headers: (url: string) => HeadersInit | undefined | Promise<HeadersInit | undefined>;
+};
+
+/**
+ * The default export of a `fetchalo.config` file: the config, or a function returning it
+ * or a promise of it, for values computed in the browser (e.g. a fetched whitelist).
+ */
+export type FetchaloConfigExport =
+  | FetchaloConfig
+  | (() => FetchaloConfig | Promise<FetchaloConfig>);
+
+/** The config from a `fetchalo.config` file's default export. */
+export function loadConfig(
+  configExport: FetchaloConfigExport
+): FetchaloConfig | Promise<FetchaloConfig> {
+  return typeof configExport === 'function' ? configExport() : configExport;
+}
 
 export type FetchaloClientOptions = {
-  /** Origins whose files get the headers, as `URL.origin` strings. */
-  origins: string[];
-  /** The app's headers function, or a promise of it. */
-  headers: HeadersFn | Promise<HeadersFn>;
+  /** The app's config, or a promise of it (its file may still be loading). */
+  config: FetchaloConfig | Promise<FetchaloConfig>;
 };
 
 declare global {
   interface Window {
-    fetchalo: { fetch: typeof fetch; isTarget(url: string): boolean };
+    fetchalo: {
+      fetch: typeof fetch;
+      isTarget(url: string): boolean;
+      /** Resolves once the origins are added: `isTarget` is final from then on. */
+      ready: Promise<void>;
+    };
   }
 }
 
@@ -36,19 +76,44 @@ type EsmsWindow = { esmsInitOptions?: { fetch?: unknown; [option: string]: unkno
  *   inline styles.
  * - Media: <img>, <source>, <video>, <audio> (`src`, `srcset`, `poster`).
  *
- * Files are served to the browser from blob: URLs.
+ * Files are served to the browser from blob: URLs. With a config given as a promise,
+ * its origins are targets once it resolves (`window.fetchalo.ready`).
  */
 export function installFetchalo(options: FetchaloClientOptions): void {
-  const origins = new Set(options.origins);
+  const origins = new Set<string>();
+  // An invalid origin is reported and skipped.
+  const addOrigins = (list: string[] | undefined): void => {
+    for (const origin of list ?? []) {
+      try {
+        origins.add(normalizeOrigin(origin));
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+  // A config's origins are in effect at once, a promised config's once it resolves.
+  const isAsync = options.config instanceof Promise;
+  if (!(options.config instanceof Promise)) addOrigins(options.config.origins);
+  const config = Promise.resolve(options.config).catch((error) => {
+    console.error('[fetchalo] could not load the config', error);
+    return undefined;
+  });
+  const ready = config.then((resolved) => {
+    if (isAsync) addOrigins(resolved?.origins);
+    if (origins.size === 0)
+      console.warn('[fetchalo] no origins: nothing is fetched with the headers');
+  });
+
+  // A URL as the page resolves it (relative to the page, not to a stylesheet).
+  const pageUrl = (url: string): URL => new URL(url, location.href);
+
   const isTarget = (url: string): boolean => {
     try {
-      return origins.has(new URL(url, location.href).origin);
+      return origins.has(pageUrl(url).origin);
     } catch {
       return false;
     }
   };
-
-  const headersReady = Promise.resolve(options.headers);
 
   // An es-module-shims fetch hook the app configured before this script still runs.
   const esmsWindow = window as unknown as EsmsWindow;
@@ -56,14 +121,16 @@ export function installFetchalo(options: FetchaloClientOptions): void {
 
   const fetchalo = (async (input: RequestInfo | URL, init: RequestInit = {}) => {
     const url = input instanceof Request ? input.url : String(input);
+    await ready;
     if (!isTarget(url)) return baseFetch(input, init);
-    const getHeaders = await headersReady;
+    // A target exists only when the config resolved.
+    const { headers: getHeaders } = (await config)!;
     const headers = requestHeaders(input, init);
     new Headers((await getHeaders(url)) ?? {}).forEach((value, name) => headers.set(name, value));
     return baseFetch(input, { ...init, headers });
   }) as typeof fetch;
 
-  window.fetchalo = { fetch: fetchalo, isTarget };
+  window.fetchalo = { fetch: fetchalo, isTarget, ready };
   esmsWindow.esmsInitOptions = { ...esmsWindow.esmsInitOptions, shimMode: true, fetch: fetchalo };
 
   // Files fetched with the headers, served from blob: URLs. One per URL.
@@ -268,7 +335,7 @@ export function installFetchalo(options: FetchaloClientOptions): void {
   // --- Media: <img>, <source>, <video>, <audio> ---
 
   const rewriteSrcset = (srcset: string): Promise<string> =>
-    mapSrcset(srcset, isTarget, (url) => toBlobUrl(new URL(url, location.href).href));
+    mapSrcset(srcset, isTarget, (url) => toBlobUrl(pageUrl(url).href));
 
   type Setter = (this: Element, value: string) => void;
   const mediaAttributes: [typeof HTMLElement, string[]][] = [
@@ -297,8 +364,7 @@ export function installFetchalo(options: FetchaloClientOptions): void {
     let pending = pendingMedia.get(element);
     if (!pending) pendingMedia.set(element, (pending = {}));
     pending[name] = value;
-    const rewritten =
-      name === 'srcset' ? rewriteSrcset(value) : toBlobUrl(new URL(value, location.href).href);
+    const rewritten = name === 'srcset' ? rewriteSrcset(value) : toBlobUrl(pageUrl(value).href);
     rewritten.then(
       (blobValue) => {
         if (pending[name] !== value) return;

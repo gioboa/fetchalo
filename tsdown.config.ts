@@ -11,13 +11,13 @@ export default defineConfig([
   },
   {
     // The webpack/Rspack entry: bundled by the app's bundler, which also resolves
-    // `fetchalo/headers` (alias) and `es-module-shims`.
+    // `fetchalo/config` (alias) and `es-module-shims`.
     // Two chunks on purpose: the setup must run before es-module-shims evaluates,
     // and a single module would hoist both imports above the setup code.
     entry: ['src/webpack-entry.ts', 'src/webpack-setup.ts'],
     format: ['esm'],
     outExtensions: () => ({ js: '.js' }),
-    external: ['fetchalo/headers', 'es-module-shims'],
+    external: ['fetchalo/config', 'es-module-shims'],
     dts: false,
     clean: false,
   },

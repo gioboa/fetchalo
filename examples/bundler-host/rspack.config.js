@@ -37,7 +37,7 @@ module.exports = {
     ],
   },
   plugins: [
-    new FetchaloPlugin({ origins: ['http://localhost:5176'], headers: './src/remoteHeaders.js' }),
+    new FetchaloPlugin('./src/fetchalo.config.js'),
     new ModuleFederationPlugin(federationConfig('rspackHost')),
     new rspack.HtmlRspackPlugin({ template: './src/index.html' }),
     new rspack.DefinePlugin({

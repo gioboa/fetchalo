@@ -1,54 +1,48 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { FetchaloOptions } from './index';
-import { normalizeOrigins } from './rewrite';
+import { checkConfigPath } from './options';
 
-export type { FetchaloOptions };
-
-type DefinePluginLike = new (definitions: Record<string, string>) => { apply(compiler: any): void };
+export type { FetchaloConfig, FetchaloConfigExport } from './client-core';
 
 type EntryDescription = { import: string[]; [option: string]: unknown };
 type EntryObject = Record<string, string | string[] | EntryDescription>;
 type Entry = string | string[] | EntryObject | (() => Entry | Promise<Entry>);
 
 const ENTRY_FILE = fileURLToPath(new URL('./webpack-entry.js', import.meta.url));
-const HEADERS_ALIAS = 'fetchalo/headers';
+const CONFIG_ALIAS = 'fetchalo/config';
 const SHIMS_FILE_RE = /[\\/]es-module-shims[\\/]dist[\\/]es-module-shims(\.debug|\.wasm)?\.js$/;
 
 /**
  * webpack and Rspack plugin: prepends the fetchalo client and es-module-shims to
- * every entry, so they run before the app and before any request to `origins`.
+ * every entry, so they run before the app and before any request to the `origins`.
  * With Module Federation, also add `fetchalo/federation` to the federation
  * `runtimePlugins`.
  *
  * ```js
  * const { FetchaloPlugin } = require('fetchalo/webpack'); // or 'fetchalo/rspack'
- * plugins: [new FetchaloPlugin({ origins: ['https://remote.example'], headers: './src/remoteHeaders.js' })]
+ * plugins: [new FetchaloPlugin('./src/fetchalo.config.js')]
  * ```
  */
 export class FetchaloPlugin {
-  private readonly origins: string[];
-  private readonly headers: string;
+  private readonly configPath: string;
 
-  constructor(options: FetchaloOptions) {
-    this.origins = normalizeOrigins(options.origins);
-    this.headers = options.headers;
+  /** @param configPath The app's `fetchalo.config` file, e.g. `./src/fetchalo.config.js`. */
+  constructor(configPath: string) {
+    checkConfigPath(configPath);
+    this.configPath = configPath;
   }
 
   apply(compiler: any): void {
     const { options } = compiler;
-    const bundler = compiler.webpack ?? compiler.rspack;
-    const DefinePlugin: DefinePluginLike = bundler.DefinePlugin;
-    new DefinePlugin({ __FETCHALO_ORIGINS__: JSON.stringify(this.origins) }).apply(compiler);
 
-    // `fetchalo/headers` -> the app's headers module.
+    // `fetchalo/config` -> the app's config file.
     const context: string = options.context ?? compiler.context ?? process.cwd();
-    const headersPath = path.resolve(context, this.headers);
+    const configFilePath = path.resolve(context, this.configPath);
     const alias = options.resolve.alias ?? {};
     if (Array.isArray(alias)) {
-      alias.push({ name: HEADERS_ALIAS, alias: headersPath, onlyModule: true });
+      alias.push({ name: CONFIG_ALIAS, alias: configFilePath, onlyModule: true });
     } else {
-      alias[`${HEADERS_ALIAS}$`] = headersPath;
+      alias[`${CONFIG_ALIAS}$`] = configFilePath;
     }
     options.resolve.alias = alias;
 

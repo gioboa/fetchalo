@@ -114,6 +114,28 @@ importers:
         specifier: 8.3.4
         version: 8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.4.2)(terser@5.51.2)
 
+  examples/runtime-host:
+    dependencies:
+      '@module-federation/runtime':
+        specifier: 2.9.2
+        version: 2.9.2
+      fetchalo:
+        specifier: workspace:*
+        version: link:../..
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@vitejs/plugin-react':
+        specifier: 6.0.2
+        version: 6.0.2(vite@8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.4.2)(terser@5.51.2))
+      vite:
+        specifier: 8.3.4
+        version: 8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.4.2)(terser@5.51.2)
+
   examples/vite-host:
     dependencies:
       react:
@@ -132,6 +154,28 @@ importers:
       fetchalo:
         specifier: workspace:*
         version: link:../..
+      vite:
+        specifier: 8.3.4
+        version: 8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.4.2)(terser@5.51.2)
+
+  examples/vite-runtime-plugin-host:
+    dependencies:
+      fetchalo:
+        specifier: workspace:*
+        version: link:../..
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@module-federation/vite':
+        specifier: 1.23.5
+        version: 1.23.5(typescript@7.0.2)(vite@8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.4.2)(terser@5.51.2))
+      '@vitejs/plugin-react':
+        specifier: 6.0.2
+        version: 6.0.2(vite@8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.4.2)(terser@5.51.2))
       vite:
         specifier: 8.3.4
         version: 8.3.4(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.4.2)(terser@5.51.2)

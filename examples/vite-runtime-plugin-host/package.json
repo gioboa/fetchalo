@@ -1,0 +1,22 @@
+{
+  "name": "fetchalo-example-vite-runtime-plugin-host",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Vite + Module Federation host that installs fetchalo only through a federation runtime plugin, without the fetchalo build plugin.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite build && vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "fetchalo": "workspace:*",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@module-federation/vite": "1.23.5",
+    "@vitejs/plugin-react": "6.0.2",
+    "vite": "8.3.4"
+  }
+}
