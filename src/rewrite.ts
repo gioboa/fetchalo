@@ -100,18 +100,15 @@ export function publicPath(base: string, htmlPath: string, file: string): string
 }
 
 /** `URL.origin` has no trailing slash or path: `https://remote.example/` would never match. */
-export function normalizeOrigins(origins: string[]): string[] {
-  const normalized = origins.map((origin) => {
-    let url: URL | undefined;
-    try {
-      url = new URL(origin);
-    } catch {
-      url = undefined;
-    }
-    if (!url || url.origin === 'null') {
-      throw new Error(`[fetchalo] invalid origin "${origin}": use e.g. "https://remote.example"`);
-    }
-    return url.origin;
-  });
-  return [...new Set(normalized)];
+export function normalizeOrigin(origin: string): string {
+  let url: URL | undefined;
+  try {
+    url = new URL(origin);
+  } catch {
+    url = undefined;
+  }
+  if (!url || url.origin === 'null') {
+    throw new Error(`[fetchalo] invalid origin "${origin}": use e.g. "https://remote.example"`);
+  }
+  return url.origin;
 }

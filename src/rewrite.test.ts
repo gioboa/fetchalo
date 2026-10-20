@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   findCssUrls,
   mapSrcset,
-  normalizeOrigins,
+  normalizeOrigin,
   replaceCssUrls,
   requestHeaders,
   srcsetUrls,
@@ -96,19 +96,14 @@ describe('@import', () => {
   });
 });
 
-describe('normalizeOrigins', () => {
-  it('normalizes to URL.origin and drops duplicates', () => {
-    expect(
-      normalizeOrigins([
-        'https://remote.example/',
-        'http://host.example:5176/testbase/',
-        'https://remote.example',
-      ])
-    ).toEqual(['https://remote.example', 'http://host.example:5176']);
+describe('normalizeOrigin', () => {
+  it('normalizes to URL.origin', () => {
+    expect(normalizeOrigin('https://remote.example/')).toBe('https://remote.example');
+    expect(normalizeOrigin('http://host.example:5176/testbase/')).toBe('http://host.example:5176');
   });
 
   it('rejects invalid origins', () => {
-    expect(() => normalizeOrigins(['remote.example'])).toThrow('invalid origin "remote.example"');
+    expect(() => normalizeOrigin('remote.example')).toThrow('invalid origin "remote.example"');
   });
 });
 

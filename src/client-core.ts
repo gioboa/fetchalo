@@ -2,7 +2,7 @@ import {
   findCssImports,
   findCssUrls,
   mapSrcset,
-  normalizeOrigins,
+  normalizeOrigin,
   replaceCssImports,
   replaceCssUrls,
   requestHeaders,
@@ -85,7 +85,7 @@ export function installFetchalo(options: FetchaloClientOptions): void {
   const addOrigins = (list: string[] | undefined): void => {
     for (const origin of list ?? []) {
       try {
-        normalizeOrigins([origin]).forEach((normalized) => origins.add(normalized));
+        origins.add(normalizeOrigin(origin));
       } catch (error) {
         console.error(error);
       }
@@ -104,9 +104,12 @@ export function installFetchalo(options: FetchaloClientOptions): void {
       console.warn('[fetchalo] no origins: nothing is fetched with the headers');
   });
 
+  // A URL as the page resolves it (relative to the page, not to a stylesheet).
+  const pageUrl = (url: string): URL => new URL(url, location.href);
+
   const isTarget = (url: string): boolean => {
     try {
-      return origins.has(new URL(url, location.href).origin);
+      return origins.has(pageUrl(url).origin);
     } catch {
       return false;
     }
@@ -332,7 +335,7 @@ export function installFetchalo(options: FetchaloClientOptions): void {
   // --- Media: <img>, <source>, <video>, <audio> ---
 
   const rewriteSrcset = (srcset: string): Promise<string> =>
-    mapSrcset(srcset, isTarget, (url) => toBlobUrl(new URL(url, location.href).href));
+    mapSrcset(srcset, isTarget, (url) => toBlobUrl(pageUrl(url).href));
 
   type Setter = (this: Element, value: string) => void;
   const mediaAttributes: [typeof HTMLElement, string[]][] = [
@@ -361,8 +364,7 @@ export function installFetchalo(options: FetchaloClientOptions): void {
     let pending = pendingMedia.get(element);
     if (!pending) pendingMedia.set(element, (pending = {}));
     pending[name] = value;
-    const rewritten =
-      name === 'srcset' ? rewriteSrcset(value) : toBlobUrl(new URL(value, location.href).href);
+    const rewritten = name === 'srcset' ? rewriteSrcset(value) : toBlobUrl(pageUrl(value).href);
     rewritten.then(
       (blobValue) => {
         if (pending[name] !== value) return;

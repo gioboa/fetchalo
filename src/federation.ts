@@ -28,11 +28,13 @@ type LoadEntryArgs = { remoteInfo: RemoteInfo; remoteEntryExports?: unknown };
 
 declare function importShim(specifier: string): Promise<unknown>;
 
-type Fetchalo = { fetch: typeof fetch; isTarget(url: string): boolean; ready?: Promise<void> };
+// The fetchalo installed in the page (by a build plugin or by this plugin), if any.
+const installedFetchalo = (): Window['fetchalo'] | undefined =>
+  (globalThis as { fetchalo?: Window['fetchalo'] }).fetchalo;
 
 // Once the origins are added, so `isTarget` covers them.
-const getFetchalo = async (): Promise<Fetchalo | undefined> => {
-  const fetchalo = (globalThis as { fetchalo?: Fetchalo }).fetchalo;
+const getFetchalo = async (): Promise<Window['fetchalo'] | undefined> => {
+  const fetchalo = installedFetchalo();
   await fetchalo?.ready;
   return fetchalo;
 };
@@ -46,7 +48,7 @@ let installed: Promise<unknown> | undefined;
 function install(config: FetchaloConfig | Promise<FetchaloConfig>): Promise<unknown> {
   if (installed) return installed;
   if (typeof window === 'undefined') return Promise.resolve();
-  if ((globalThis as { fetchalo?: Fetchalo }).fetchalo) {
+  if (installedFetchalo()) {
     console.warn(
       '[fetchalo] already installed by a build plugin: the config passed to fetchalo/federation is ignored'
     );
